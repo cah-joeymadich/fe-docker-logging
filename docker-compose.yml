@@ -1,0 +1,61 @@
+version: "3.7"
+
+services:
+    logstash:
+        build: ./logstash/.
+        ports:
+            - "5044:5044"
+        depends_on:
+            - elasticsearch
+        networks:
+            elastic:
+                ipv4_address: 172.23.0.6
+        privileged: true
+    
+    web:
+        build: ./web/.
+        ports:
+            - "80:80"
+        depends_on: 
+            - elasticsearch
+            - kibana
+            - logstash
+        networks:
+            elastic:
+                ipv4_address: 172.23.0.7
+        logging:
+            driver: "syslog"
+            options:
+                syslog-address: "tcp://172.23.0.6:5044"
+        privileged: true
+
+    elasticsearch:
+        image: elasticsearch:7.3.0
+        ports:
+            - "9200:9200"
+            - "9300:9300"
+        networks:
+            elastic:
+                ipv4_address: 172.23.0.5
+        environment:
+            - "discovery.type=single-node"
+        privileged: true
+
+    kibana:
+        image: kibana:7.3.1
+        ports:
+            - "5601:5601"
+        depends_on:
+            - elasticsearch
+            - logstash
+        networks:
+            elastic:
+                ipv4_address: 172.23.0.4
+        privileged: true
+
+networks:
+    elastic:
+        driver: bridge
+        ipam:
+            config:
+                - subnet: 172.23.0.0/24
