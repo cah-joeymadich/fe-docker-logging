@@ -27,6 +27,7 @@ services:
             driver: "syslog"
             options:
                 syslog-address: "tcp://172.23.0.6:5044"
+                tag: "meaningful-name/{{.Name}}/{{.ID}}"
         privileged: true
 
     elasticsearch:
